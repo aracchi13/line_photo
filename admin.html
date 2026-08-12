@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>案件管理</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #f4f4f4;
+      padding: 24px 16px;
+    }
+    h1 { font-size: 22px; color: #111; margin-bottom: 24px; }
+    .create-box {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .create-box h2 { font-size: 15px; color: #444; margin-bottom: 12px; }
+    .create-row { display: flex; gap: 10px; }
+    .create-row input {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+    }
+    .create-row input:focus { border-color: #06C755; }
+    .btn-create {
+      padding: 12px 20px;
+      background: #06C755;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-create:disabled { background: #aaa; cursor: not-allowed; }
+    #createStatus { margin-top: 10px; font-size: 13px; }
+    .success { color: #06C755; font-weight: bold; }
+    .error-msg { color: #e00; }
+
+    h2.section { font-size: 16px; color: #333; margin-bottom: 14px; }
+    .case-list { display: flex; flex-direction: column; gap: 12px; }
+    .case-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .case-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .case-name { font-size: 16px; font-weight: bold; color: #111; }
+    .case-date { font-size: 12px; color: #999; margin-top: 2px; }
+    .case-header-right { display: flex; gap: 8px; align-items: center; }
+    .btn-drive {
+      padding: 6px 14px;
+      background: #4285F4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-rename {
+      padding: 6px 12px;
+      background: #f0f0f0;
+      color: #555;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-rename:hover { background: #e0e0e0; }
+    .url-row { display: flex; gap: 8px; align-items: center; }
+    .url-box {
+      flex: 1;
+      padding: 9px 12px;
+      background: #f7f7f7;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #555;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+    .btn-copy {
+      padding: 9px 14px;
+      background: #111;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-copy.copied { background: #06C755; }
+
+    /* 名前変更エリア */
+    .rename-row {
+      display: none;
+      gap: 8px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .rename-row input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1px solid #06C755;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    .btn-save {
+      padding: 9px 14px;
+      background: #06C755;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-cancel-rename {
+      padding: 9px 12px;
+      background: #eee;
+      color: #555;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .loading { text-align: center; padding: 40px; color: #999; font-size: 15px; }
+    .empty { text-align: center; padding: 30px; color: #bbb; font-size: 14px; }
+
+    /* 確認モーダル */
+    #confirmOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    #confirmOverlay.show { display: flex; }
+    .confirm-card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 24px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+    }
+    .confirm-card .confirm-title {
+      font-size: 17px;
+      color: #333;
+      margin-bottom: 12px;
+    }
+    .confirm-card .confirm-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #111;
+      margin-bottom: 24px;
+      word-break: break-all;
+    }
+    .confirm-buttons {
+      display: flex;
+      gap: 12px;
+    }
+    .btn-cancel-confirm {
+      flex: 1;
+      padding: 14px;
+      background: #eee;
+      color: #555;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-confirm-ok {
+      flex: 1;
+      padding: 14px;
+      background: #06C755;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-confirm-ok:disabled { background: #aaa; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<!-- 作成確認モーダル -->
+<div id="confirmOverlay">
+  <div class="confirm-card">
+    <p class="confirm-title">この名前で案件を作成しますか？</p>
+    <p id="confirmName" class="confirm-name"></p>
+    <div class="confirm-buttons">
+      <button class="btn-cancel-confirm" onclick="cancelCreate()">キャンセル</button>
+      <button class="btn-confirm-ok" id="confirmOkBtn" onclick="doCreate()">作成する</button>
+    </div>
+  </div>
+</div>
+
+<h1>📋 案件管理</h1>
+
+<div class="create-box">
+  <h2>新しい案件を作成</h2>
+  <div class="create-row">
+    <input type="text" id="caseNameInput" placeholder="例: 山田様邸 外壁工事" />
+    <button class="btn-create" id="createBtn" onclick="confirmCreate()">作成</button>
+  </div>
+  <div id="createStatus"></div>
+</div>
+
+<h2 class="section">案件一覧</h2>
+<div id="caseList" class="case-list">
+  <div class="loading">読み込み中...</div>
+</div>
+
+<script>
+  var scriptUrl = '';
+  var pendingCaseName = '';
+
+  window.onload = function() {
+    google.script.run
+      .withSuccessHandler(function(url) {
+        scriptUrl = url;
+        loadCases();
+      })
+      .withFailureHandler(function() {
+        loadCases();
+      })
+      .getScriptUrl();
+  };
+
+  function loadCases() {
+    google.script.run
+      .withSuccessHandler(renderCases)
+      .withFailureHandler(function(e) {
+        document.getElementById('caseList').innerHTML =
+          '<div class="empty">読み込みに失敗しました: ' + e.message + '</div>';
+      })
+      .getCases();
+  }
+
+  function renderCases(cases) {
+    var list = document.getElementById('caseList');
+    if (!cases || cases.length === 0) {
+      list.innerHTML = '<div class="empty">案件がまだありません</div>';
+      return;
+    }
+    list.innerHTML = '';
+    cases.forEach(function(c) {
+      var uploadUrl = scriptUrl + '?caseId=' + c.id;
+      var date = new Date(c.created);
+      var dateStr = date.getFullYear() + '/' + pad(date.getMonth()+1) + '/' + pad(date.getDate());
+      var card = document.createElement('div');
+      card.className = 'case-card';
+      card.id = 'card-' + c.id;
+      card.innerHTML =
+        '<div class="case-header">' +
+          '<div>' +
+            '<div class="case-name" id="name-' + c.id + '">📁 ' + escapeHtml(c.name) + '</div>' +
+            '<div class="case-date">作成日: ' + dateStr + '</div>' +
+          '</div>' +
+          '<div class="case-header-right">' +
+            '<button class="btn-rename" onclick="showRename(\'' + c.id + '\', \'' + escapeAttr(c.name) + '\')">✏️ 名前を変更</button>' +
+            '<a class="btn-drive" href="' + c.url + '" target="_blank">Driveを開く</a>' +
+          '</div>' +
+        '</div>' +
+        '<div class="rename-row" id="rename-' + c.id + '">' +
+          '<input type="text" id="rename-input-' + c.id + '" value="' + escapeAttr(c.name) + '" />' +
+          '<button class="btn-save" onclick="saveRename(\'' + c.id + '\')">保存</button>' +
+          '<button class="btn-cancel-rename" onclick="hideRename(\'' + c.id + '\')">キャンセル</button>' +
+        '</div>' +
+        '<div class="url-row">' +
+          '<div class="url-box">' + escapeHtml(uploadUrl) + '</div>' +
+          '<button class="btn-copy" onclick="copyUrl(this, \'' + escapeAttr(uploadUrl) + '\')">コピー</button>' +
+        '</div>';
+      list.appendChild(card);
+    });
+  }
+
+  // 作成確認
+  function confirmCreate() {
+    var input = document.getElementById('caseNameInput');
+    var name = input.value.trim();
+    if (!name) {
+      document.getElementById('createStatus').innerHTML =
+        '<span class="error-msg">案件名を入力してください</span>';
+      return;
+    }
+    pendingCaseName = name;
+    document.getElementById('confirmName').textContent = '「' + name + '」';
+    document.getElementById('confirmOverlay').classList.add('show');
+  }
+
+  function cancelCreate() {
+    document.getElementById('confirmOverlay').classList.remove('show');
+    pendingCaseName = '';
+  }
+
+  function doCreate() {
+    var btn = document.getElementById('confirmOkBtn');
+    var status = document.getElementById('createStatus');
+    btn.disabled = true;
+    btn.textContent = '作成中...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        document.getElementById('confirmOverlay').classList.remove('show');
+        btn.disabled = false;
+        btn.textContent = '作成する';
+        document.getElementById('caseNameInput').value = '';
+        pendingCaseName = '';
+        status.innerHTML = '<span class="success">✅ 「' + escapeHtml(result.name) + '」を作成しました</span>';
+        loadCases();
+      })
+      .withFailureHandler(function(e) {
+        document.getElementById('confirmOverlay').classList.remove('show');
+        btn.disabled = false;
+        btn.textContent = '作成する';
+        status.innerHTML = '<span class="error-msg">エラー: ' + e.message + '</span>';
+      })
+      .createCase(pendingCaseName);
+  }
+
+  // 名前変更
+  function showRename(id, currentName) {
+    var row = document.getElementById('rename-' + id);
+    row.style.display = 'flex';
+    document.getElementById('rename-input-' + id).focus();
+  }
+
+  function hideRename(id) {
+    document.getElementById('rename-' + id).style.display = 'none';
+  }
+
+  function saveRename(id) {
+    var input = document.getElementById('rename-input-' + id);
+    var newName = input.value.trim();
+    if (!newName) return;
+
+    var saveBtn = input.parentElement.querySelector('.btn-save');
+    saveBtn.disabled = true;
+    saveBtn.textContent = '保存中...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        document.getElementById('name-' + id).textContent = '📁 ' + result.name;
+        hideRename(id);
+        saveBtn.disabled = false;
+        saveBtn.textContent = '保存';
+      })
+      .withFailureHandler(function(e) {
+        alert('エラー: ' + e.message);
+        saveBtn.disabled = false;
+        saveBtn.textContent = '保存';
+      })
+      .renameCase(id, newName);
+  }
+
+  function copyUrl(btn, url) {
+    navigator.clipboard.writeText(url).then(function() {
+      btn.textContent = 'コピー済み';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 2000);
+    }).catch(function() {
+      var ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = 'コピー済み';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function escapeAttr(str) {
+    return String(str).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+  }
+
+  function pad(n) { return n < 10 ? '0' + n : n; }
+
+  document.getElementById('caseNameInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') confirmCreate();
+  });
+
+  // モーダル外クリックで閉じる
+  document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+    if (e.target === this) cancelCreate();
+  });
+</script>
+</body>
+</html>

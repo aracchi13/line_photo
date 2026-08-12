@@ -13,31 +13,37 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 20px;
+      padding: 24px 16px;
     }
     .card {
       background: white;
-      border-radius: 16px;
-      padding: 32px 24px;
+      border-radius: 20px;
+      padding: 36px 24px 32px;
       width: 100%;
-      max-width: 400px;
+      max-width: 480px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
       text-align: center;
     }
-    h1 { font-size: 20px; margin-bottom: 8px; color: #111; }
-    p { font-size: 14px; color: #666; margin-bottom: 24px; }
+    h1 { font-size: 24px; margin-bottom: 10px; color: #111; }
+    .case-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #06C755;
+      margin-bottom: 6px;
+    }
+    p { font-size: 16px; color: #666; margin-bottom: 24px; line-height: 1.6; }
     .upload-area {
       border: 2px dashed #ccc;
-      border-radius: 12px;
-      padding: 40px 16px;
+      border-radius: 14px;
+      padding: 48px 16px;
       cursor: pointer;
       transition: border-color 0.2s;
       margin-bottom: 20px;
     }
     .upload-area:hover { border-color: #06C755; }
     .upload-area.dragover { border-color: #06C755; background: #f0fff4; }
-    .upload-icon { font-size: 48px; margin-bottom: 12px; }
-    .upload-text { font-size: 14px; color: #888; }
+    .upload-icon { font-size: 64px; margin-bottom: 16px; }
+    .upload-text { font-size: 17px; color: #888; line-height: 1.7; }
     #fileInput { display: none; }
     #preview {
       display: flex;
@@ -47,29 +53,58 @@
       justify-content: center;
     }
     #preview img {
-      width: 80px;
-      height: 80px;
+      width: 90px;
+      height: 90px;
       object-fit: cover;
       border-radius: 8px;
     }
-    button {
+    #uploadBtn {
       width: 100%;
-      padding: 14px;
+      padding: 18px;
       background: #06C755;
       color: white;
       border: none;
       border-radius: 12px;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: bold;
       cursor: pointer;
       display: none;
     }
-    button:disabled { background: #aaa; cursor: not-allowed; }
-    #status { margin-top: 16px; font-size: 14px; color: #444; }
+    #uploadBtn:disabled { background: #aaa; cursor: not-allowed; }
+
+    #progressWrap {
+      display: none;
+      position: relative;
+      width: 100%;
+      height: 56px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #ddd;
+    }
+    #progressFill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      width: 0%;
+      background: #06C755;
+      transition: width 0.4s ease;
+    }
+    #progressLabel {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-weight: bold;
+      font-size: 17px;
+      white-space: nowrap;
+      z-index: 1;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    #status { margin-top: 16px; font-size: 16px; color: #444; }
     .success { color: #06C755; font-weight: bold; }
     .error { color: #e00; }
 
-    /* LINEブラウザ警告オーバーレイ */
     #line-overlay {
       display: none;
       position: fixed;
@@ -81,36 +116,33 @@
       align-items: center;
       padding: 24px;
     }
-    #line-overlay.show {
-      display: flex;
-    }
+    #line-overlay.show { display: flex; }
     .overlay-card {
       background: white;
-      border-radius: 16px;
-      padding: 32px 24px;
+      border-radius: 20px;
+      padding: 40px 28px;
       text-align: center;
-      max-width: 340px;
-      width: 100%;
+      width: 90%;
+      max-width: 420px;
     }
-    .overlay-card .icon { font-size: 52px; margin-bottom: 16px; }
-    .overlay-card h2 { font-size: 18px; margin-bottom: 12px; color: #111; }
-    .overlay-card p { font-size: 14px; color: #555; line-height: 1.7; }
+    .overlay-card .icon { font-size: 64px; margin-bottom: 20px; }
+    .overlay-card h2 { font-size: 26px; margin-bottom: 16px; color: #111; line-height: 1.4; }
+    .overlay-card p { font-size: 18px; color: #555; line-height: 1.7; }
     .overlay-card .step {
       background: #f5f5f5;
-      border-radius: 10px;
-      padding: 16px;
-      margin-top: 20px;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 22px;
       text-align: left;
-      font-size: 14px;
+      font-size: 18px;
       color: #333;
-      line-height: 2;
+      line-height: 2.4;
     }
     .overlay-card .step strong { color: #06C755; }
   </style>
 </head>
 <body>
 
-<!-- LINEブラウザ警告（iOS用） -->
 <div id="line-overlay">
   <div class="overlay-card">
     <div class="icon">⚠️</div>
@@ -126,6 +158,13 @@
 
 <div class="card">
   <h1>📷 写真を送る</h1>
+  <?
+    if (caseName) {
+  ?>
+  <div class="case-name">📁 <?= caseName ?></div>
+  <?
+    }
+  ?>
   <p>写真を選んでアップロードしてください<br>元の画質のまま届きます</p>
 
   <div class="upload-area" id="uploadArea">
@@ -136,28 +175,34 @@
 
   <div id="preview"></div>
   <button id="uploadBtn">アップロードする</button>
+  <div id="progressWrap">
+    <div id="progressFill"></div>
+    <div id="progressLabel">0 / 0枚</div>
+  </div>
   <div id="status"></div>
 </div>
 
 <script>
-  // LINEブラウザ検知
+  var CASE_ID = '<?= caseId ?>';
+  var CASE_NAME = '<?= caseName ?>';
+
   var ua = navigator.userAgent;
   var isLine = /Line\//i.test(ua);
   var isAndroid = /Android/i.test(ua);
-  var isIOS = /iPhone|iPad|iPod/i.test(ua);
 
   if (isLine) {
     if (isAndroid) {
-      // AndroidはChromeに自動リダイレクト
       var url = location.href.replace(/^https?:\/\//, '');
       location.href = 'intent://' + url + '#Intent;scheme=https;package=com.android.chrome;end';
     } else {
-      // iOSは案内オーバーレイを表示
       document.getElementById('line-overlay').classList.add('show');
     }
   }
 
   var files = [];
+  var progressWrap = document.getElementById('progressWrap');
+  var progressFill = document.getElementById('progressFill');
+  var progressLabel = document.getElementById('progressLabel');
 
   document.getElementById('uploadArea').addEventListener('click', function() {
     document.getElementById('fileInput').click();
@@ -209,8 +254,12 @@
     if (files.length === 0) return;
     var btn = document.getElementById('uploadBtn');
     var status = document.getElementById('status');
-    btn.disabled = true;
-    btn.textContent = 'アップロード中...';
+    var total = files.length;
+
+    btn.style.display = 'none';
+    progressWrap.style.display = 'block';
+    progressFill.style.width = '0%';
+    progressLabel.textContent = '0 / ' + total + '枚';
     status.textContent = '';
 
     var uploaded = 0;
@@ -223,27 +272,30 @@
         google.script.run
           .withSuccessHandler(function() {
             uploaded++;
+            var pct = Math.round(uploaded / total * 100);
+            progressFill.style.width = pct + '%';
+            progressLabel.textContent = uploaded + ' / ' + total + '枚';
             checkDone();
           })
           .withFailureHandler(function() {
             failed++;
             checkDone();
           })
-          .uploadFile(base64, file.name, file.type);
+          .uploadFile(base64, file.name, file.type, CASE_ID);
       };
       reader.readAsDataURL(file);
     });
 
     function checkDone() {
-      if (uploaded + failed === files.length) {
-        btn.disabled = false;
-        btn.textContent = 'アップロードする';
+      if (uploaded + failed === total) {
+        progressWrap.style.display = 'none';
         if (failed === 0) {
           status.innerHTML = '<span class="success">✅ ' + uploaded + '枚送信完了！</span>';
+          google.script.run.sendNotification(CASE_NAME, uploaded);
           files = [];
           document.getElementById('preview').innerHTML = '';
-          btn.style.display = 'none';
         } else {
+          btn.style.display = 'block';
           status.innerHTML = '<span class="error">⚠️ ' + failed + '枚失敗しました。もう一度お試しください。</span>';
         }
       }
