@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>写真アップロード</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h1 { font-size: 20px; margin-bottom: 8px; color: #111; }
+    p { font-size: 14px; color: #666; margin-bottom: 24px; }
+    .upload-area {
+      border: 2px dashed #ccc;
+      border-radius: 12px;
+      padding: 40px 16px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      margin-bottom: 20px;
+    }
+    .upload-area:hover { border-color: #06C755; }
+    .upload-area.dragover { border-color: #06C755; background: #f0fff4; }
+    .upload-icon { font-size: 48px; margin-bottom: 12px; }
+    .upload-text { font-size: 14px; color: #888; }
+    #fileInput { display: none; }
+    #preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    #preview img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #06C755;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+    }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    #status { margin-top: 16px; font-size: 14px; color: #444; }
+    .success { color: #06C755; font-weight: bold; }
+    .error { color: #e00; }
+
+    /* LINEブラウザ警告オーバーレイ */
+    #line-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    #line-overlay.show {
+      display: flex;
+    }
+    .overlay-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      max-width: 340px;
+      width: 100%;
+    }
+    .overlay-card .icon { font-size: 52px; margin-bottom: 16px; }
+    .overlay-card h2 { font-size: 18px; margin-bottom: 12px; color: #111; }
+    .overlay-card p { font-size: 14px; color: #555; line-height: 1.7; }
+    .overlay-card .step {
+      background: #f5f5f5;
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 20px;
+      text-align: left;
+      font-size: 14px;
+      color: #333;
+      line-height: 2;
+    }
+    .overlay-card .step strong { color: #06C755; }
+  </style>
+</head>
+<body>
+
+<!-- LINEブラウザ警告（iOS用） -->
+<div id="line-overlay">
+  <div class="overlay-card">
+    <div class="icon">⚠️</div>
+    <h2>LINEブラウザでは<br>写真を選べません</h2>
+    <p>SafariまたはChromeで開いてください</p>
+    <div class="step">
+      <strong>① </strong>画面右下の <strong>「・・・」</strong> をタップ<br>
+      <strong>② </strong>「<strong>ブラウザで開く</strong>」を選ぶ<br>
+      <strong>③ </strong>Safariが開いたら写真を送れます
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h1>📷 写真を送る</h1>
+  <p>写真を選んでアップロードしてください<br>元の画質のまま届きます</p>
+
+  <div class="upload-area" id="uploadArea">
+    <div class="upload-icon">🖼️</div>
+    <div class="upload-text">タップして写真を選ぶ<br>またはドラッグ＆ドロップ</div>
+    <input type="file" id="fileInput" accept="image/*" multiple>
+  </div>
+
+  <div id="preview"></div>
+  <button id="uploadBtn">アップロードする</button>
+  <div id="status"></div>
+</div>
+
+<script>
+  // LINEブラウザ検知
+  var ua = navigator.userAgent;
+  var isLine = /Line\//i.test(ua);
+  var isAndroid = /Android/i.test(ua);
+  var isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+  if (isLine) {
+    if (isAndroid) {
+      // AndroidはChromeに自動リダイレクト
+      var url = location.href.replace(/^https?:\/\//, '');
+      location.href = 'intent://' + url + '#Intent;scheme=https;package=com.android.chrome;end';
+    } else {
+      // iOSは案内オーバーレイを表示
+      document.getElementById('line-overlay').classList.add('show');
+    }
+  }
+
+  var files = [];
+
+  document.getElementById('uploadArea').addEventListener('click', function() {
+    document.getElementById('fileInput').click();
+  });
+
+  document.getElementById('fileInput').addEventListener('change', function(e) {
+    handleFiles(e.target.files);
+  });
+
+  var uploadArea = document.getElementById('uploadArea');
+  uploadArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+  });
+  uploadArea.addEventListener('dragleave', function() {
+    uploadArea.classList.remove('dragover');
+  });
+  uploadArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+
+  function handleFiles(newFiles) {
+    for (var i = 0; i < newFiles.length; i++) {
+      if (newFiles[i].type.startsWith('image/')) {
+        files.push(newFiles[i]);
+      }
+    }
+    showPreview();
+    document.getElementById('uploadBtn').style.display = files.length > 0 ? 'block' : 'none';
+  }
+
+  function showPreview() {
+    var preview = document.getElementById('preview');
+    preview.innerHTML = '';
+    files.forEach(function(file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var img = document.createElement('img');
+        img.src = e.target.result;
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  document.getElementById('uploadBtn').addEventListener('click', function() {
+    if (files.length === 0) return;
+    var btn = document.getElementById('uploadBtn');
+    var status = document.getElementById('status');
+    btn.disabled = true;
+    btn.textContent = 'アップロード中...';
+    status.textContent = '';
+
+    var uploaded = 0;
+    var failed = 0;
+
+    files.forEach(function(file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var base64 = e.target.result.split(',')[1];
+        google.script.run
+          .withSuccessHandler(function() {
+            uploaded++;
+            checkDone();
+          })
+          .withFailureHandler(function() {
+            failed++;
+            checkDone();
+          })
+          .uploadFile(base64, file.name, file.type);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function checkDone() {
+      if (uploaded + failed === files.length) {
+        btn.disabled = false;
+        btn.textContent = 'アップロードする';
+        if (failed === 0) {
+          status.innerHTML = '<span class="success">✅ ' + uploaded + '枚送信完了！</span>';
+          files = [];
+          document.getElementById('preview').innerHTML = '';
+          btn.style.display = 'none';
+        } else {
+          status.innerHTML = '<span class="error">⚠️ ' + failed + '枚失敗しました。もう一度お試しください。</span>';
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>
