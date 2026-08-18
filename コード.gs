@@ -17,6 +17,12 @@ function doGet(e) {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 
+  if (page === 'manual') {
+    return HtmlService.createHtmlOutputFromFile('manual')
+      .setTitle('使い方ガイド')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
   var template = HtmlService.createTemplateFromFile('index');
   template.caseId = caseId || '';
   template.caseName = '';

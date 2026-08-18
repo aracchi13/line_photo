@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>写真アップロードシステム 使い方ガイド</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Hiragino Sans', sans-serif;
+      background: #f4f4f4;
+      color: #222;
+      line-height: 1.7;
+    }
+    .hero {
+      background: #06C755;
+      color: white;
+      padding: 48px 24px 40px;
+      text-align: center;
+    }
+    .hero h1 { font-size: 26px; margin-bottom: 8px; }
+    .hero p { font-size: 15px; opacity: 0.9; }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 32px 16px 60px; }
+
+    .overview {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    }
+    .overview h2 { font-size: 17px; color: #06C755; margin-bottom: 12px; }
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .flow-step {
+      background: #f0fff4;
+      border: 1.5px solid #06C755;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #047a36;
+      text-align: center;
+    }
+    .flow-arrow { font-size: 20px; color: #06C755; }
+
+    .section {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    .badge {
+      background: #06C755;
+      color: white;
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .badge.blue { background: #4285F4; }
+    .section-title h2 { font-size: 19px; color: #111; }
+
+    .steps { display: flex; flex-direction: column; gap: 18px; }
+    .step { display: flex; gap: 16px; align-items: flex-start; }
+    .step-num {
+      background: #06C755;
+      color: white;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-body h3 { font-size: 16px; color: #111; margin-bottom: 4px; }
+    .step-body p { font-size: 14px; color: #555; }
+    .step-body .note {
+      background: #f8f8f8;
+      border-left: 3px solid #06C755;
+      padding: 8px 12px;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      color: #444;
+      margin-top: 8px;
+    }
+    .step-body .warn {
+      background: #fff8e1;
+      border-left: 3px solid #f59e0b;
+      padding: 8px 12px;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      color: #555;
+      margin-top: 8px;
+    }
+
+    .mock {
+      background: #f7f7f7;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    .mock-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      border: 1px solid #eee;
+    }
+    .mock-row:last-child { margin-bottom: 0; }
+    .mock-label { flex: 1; color: #333; }
+    .mock-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: bold;
+      color: white;
+      background: #06C755;
+    }
+    .mock-btn.gray { background: #aaa; }
+    .mock-btn.blue { background: #4285F4; }
+    .mock-btn.dark { background: #333; }
+
+    .qa { display: flex; flex-direction: column; gap: 16px; }
+    .qa-q {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-weight: bold;
+      color: #111;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+    .qa-q .q-badge {
+      background: #111;
+      color: white;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 12px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .qa-a {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 14px;
+      color: #555;
+    }
+    .qa-a .a-badge {
+      background: #06C755;
+      color: white;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 12px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .notify-box {
+      background: #f0fff4;
+      border: 1.5px solid #06C755;
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .notify-box p { font-size: 14px; color: #333; }
+    .notify-box .email-list {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .notify-box .email-item {
+      font-size: 13px;
+      color: #047a36;
+      padding: 4px 0;
+      border-bottom: 1px dashed #b2f0c8;
+    }
+    .notify-box .email-item:last-child { border-bottom: none; }
+
+    .tip {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #666;
+      margin-top: 16px;
+    }
+    .tip strong { color: #b45309; }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+      padding: 24px 0 40px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>📷 写真アップロードシステム</h1>
+  <p>使い方ガイド &nbsp;|&nbsp; スタッフ向け・お客様向け</p>
+</div>
+
+<div class="container">
+
+  <div class="overview">
+    <h2>このシステムでできること</h2>
+    <p>お客様がスマホで撮った写真を、元の画質のまま Google Drive に送れるシステムです。<br>
+    案件ごとに専用のアップロード URL を発行して管理します。</p>
+    <div class="flow">
+      <div class="flow-step">① スタッフが<br>案件を作成</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">② URLを<br>お客様に送る</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">③ お客様が<br>写真を送信</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">④ Driveに<br>自動保存</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">⑤ メールで<br>通知が届く</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">
+      <span class="badge">スタッフ向け</span>
+      <h2>管理画面の使い方</h2>
+    </div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>管理画面を開く</h3>
+          <p>以下の URL にアクセスしてください。ブックマークに登録しておくと便利です。</p>
+          <div class="note">
+            📌 管理画面 URL（スタッフ専用）：<br>
+            <a href="https://script.google.com/macros/s/AKfycbwRshm0x5j2QvSMAULQKLd3D6SfLw8nZhucV05T8LtrEDkqn37eAsgDvVtRn8XirZFN/exec?page=admin" target="_blank" style="color:#047a36; word-break:break-all; font-size:13px;">
+              https://script.google.com/macros/s/AKfycbwRshm0x5j2QvSMAULQKLd3D6SfLw8nZhucV05T8LtrEDkqn37eAsgDvVtRn8XirZFN/exec?page=admin
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>新しい案件を作成する</h3>
+          <p>画面上部の入力欄に案件名を入力して「作成」ボタンを押します。</p>
+          <div class="mock">
+            <div style="font-size:12px; color:#999; margin-bottom:8px;">案件名の例</div>
+            <div class="mock-row"><span class="mock-label">山田様邸 外壁工事</span><span class="mock-btn">作成</span></div>
+            <div class="mock-row"><span class="mock-label">鈴木様 ビフォーアフター撮影</span><span class="mock-btn">作成</span></div>
+          </div>
+          <div class="note">✅ 確認ダイアログが表示されます。内容を確認してから「作成する」を押してください。<br>作成すると Google Drive に同名のフォルダが自動で作られます。</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>アップロード URL をコピーしてお客様に送る</h3>
+          <p>案件一覧に表示されている URL の横の「コピー」ボタンを押すとクリップボードに入ります。<br>
+          そのまま LINE やメール等でお客様に貼り付けて送信してください。</p>
+          <div class="mock">
+            <div class="mock-row">
+              <span class="mock-label" style="font-size:11px; color:#888;">https://script.google.com/macros/s/xxx?caseId=yyy</span>
+              <span class="mock-btn dark">コピー</span>
+            </div>
+          </div>
+          <div class="warn">⚠️ URL はそのまま長文になります。短縮 URL サービス（bit.ly 等）を使うと LINE で送りやすくなります。</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Google Drive で写真を確認する</h3>
+          <p>各案件カードの「Driveを開く」ボタンを押すと、その案件のフォルダが直接開きます。</p>
+          <div class="mock">
+            <div class="mock-row">
+              <span class="mock-label">📁 山田様邸 外壁工事</span>
+              <span class="mock-btn gray">✏️ 名前を変更</span>
+              <span class="mock-btn blue">Driveを開く</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h3>案件名を変更する（任意）</h3>
+          <p>「✏️ 名前を変更」ボタンを押すと入力欄が表示されます。新しい名前を入力して「保存」を押してください。<br>
+          Google Drive のフォルダ名も同時に変更されます。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">
+      <span class="badge blue">お客様向け</span>
+      <h2>写真の送り方</h2>
+    </div>
+
+    <p style="font-size:14px; color:#555; margin-bottom:12px;">
+      スタッフから送られてきた URL をタップすると写真送信ページが開きます。<br>
+      管理画面でコピーした案件ごとの URL をお客様に送ってください。
+    </p>
+    <div class="note" style="margin-bottom:20px;">
+      📎 お客様向けアップロード URL の例（管理画面からコピーして送付）：<br>
+      <span style="color:#047a36; word-break:break-all; font-size:13px;">
+        https://script.google.com/macros/s/AKfycbwRshm0x5j2QvSMAULQKLd3D6SfLw8nZhucV05T8LtrEDkqn37eAsgDvVtRn8XirZFN/exec?caseId=【案件ID】
+      </span><br>
+      <span style="font-size:12px; color:#888;">※ 案件IDは管理画面の「コピー」ボタンで自動的に付与されます。手動入力は不要です。</span>
+    </div>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Safari または Chrome で URL を開く</h3>
+          <p>LINE のトーク画面から URL をタップしてください。</p>
+          <div class="warn">
+            ⚠️ <strong>LINE 内のブラウザでは写真を選べません。</strong><br>
+            画面に案内が表示されたら、右下の「・・・」→「ブラウザで開く」を選んでください。<br>
+            （Android の場合は自動で Chrome が起動します）
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>写真を選ぶ</h3>
+          <p>画面中央の点線のエリアをタップするとカメラロールが開きます。<br>
+          送りたい写真を複数選んでも OK です。</p>
+          <div class="note">📱 選んだ写真はサムネイルでプレビュー表示されます。</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>「アップロードする」ボタンを押す</h3>
+          <p>緑色のボタンが表示されたらタップしてください。<br>
+          進行状況がバーで表示されます（例：2 / 5枚）。</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>「✅ 〇枚送信完了！」と表示されたら完了</h3>
+          <p>写真がスタッフの Google Drive に届きました。<br>
+          失敗した場合はメッセージが赤く表示されます。もう一度ボタンを押すと再送信できます。</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tip">
+      <strong>📸 ポイント：</strong>写真は元の画質のままアップロードされます。圧縮されないので、細部まできれいに届きます。
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">
+      <span class="badge">自動通知</span>
+      <h2>写真が届いたときのメール通知</h2>
+    </div>
+    <div class="notify-box">
+      <p>お客様が写真を送信すると、以下のアドレスに自動でメールが届きます。</p>
+      <div class="email-list">
+        <div class="email-item">📧 arai@beautypro.co.jp</div>
+        <div class="email-item">📧 arai.tomoya@beautypro.co.jp</div>
+        <div class="email-item">📧 job@beautypro.co.jp</div>
+      </div>
+    </div>
+    <p style="font-size:13px; color:#888; margin-top:12px;">
+      メール件名：【写真受信】〇〇 に写真が届きました<br>
+      メール本文：案件名 と 枚数 が記載されます。
+    </p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">
+      <span class="badge">FAQ</span>
+      <h2>よくある質問</h2>
+    </div>
+    <div class="qa">
+
+      <div class="qa-item">
+        <div class="qa-q"><span class="q-badge">Q</span>LINE で URL を送ったら「ブラウザで開く」が出ない</div>
+        <div class="qa-a"><span class="a-badge">A</span>画面右下の「…」（3点メニュー）をタップすると選択肢が出ます。それでも出ない場合は URL をコピーして Safari のアドレスバーに貼り付けてください。</div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q"><span class="q-badge">Q</span>アップロードに時間がかかる</div>
+        <div class="qa-a"><span class="a-badge">A</span>写真の枚数が多いほど時間がかかります。Wi-Fi 環境での利用を推奨します。画面を閉じずにお待ちください。</div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q"><span class="q-badge">Q</span>一部の写真だけ失敗した</div>
+        <div class="qa-a"><span class="a-badge">A</span>「⚠️ 〇枚失敗しました」と表示されたら、もう一度ボタンを押すと失敗分のみ再送信されます。</div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q"><span class="q-badge">Q</span>同じ URL を何度も使える？</div>
+        <div class="qa-a"><span class="a-badge">A</span>はい。同じ案件 URL は何度でも使えます。追加で写真を送りたいときも同じ URL を使ってください。</div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q"><span class="q-badge">Q</span>間違えて別の案件 URL を送ってしまった</div>
+        <div class="qa-a"><span class="a-badge">A</span>管理画面から正しい URL をコピーして、お客様に再送してください。</div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q"><span class="q-badge">Q</span>通知メールを受け取るアドレスを変えたい</div>
+        <div class="qa-a"><span class="a-badge">A</span>コード.gs の NOTIFY_EMAILS リストを変更し、再デプロイしてください。</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>写真アップロードシステム 使い方ガイド</footer>
+
+</body>
+</html>
